@@ -11,24 +11,26 @@ class GraphRenderer(QGLWidget):
     def __init__(self, parent=None):
         super(GraphRenderer, self).__init__(parent)
         self.graph = {"vertices": [], "edges": []}  # Store graph data
-        self.vertex_positions = {}  # Dictionary to store vertex positions
-        self.history = []  # Stack to store graph states for undo
-        self.redo_stack = []  # Stack to store graph states for redo
+        self.vertex_positions = {}  
+        self.history = []  
+        self.redo_stack = []  
         self.save_state()  # Save the initial state
-        self.initial_graph_state = None  # Store the initial graph state for reset
-        self.selected_vertices = []  # Track selected vertices for edge creation
+        self.initial_graph_state = None 
+        self.selected_vertices = [] 
         self.force_iterations = 50  # Number of iterations for force-directed layout
-        self.vertex_radius = 0.5  # Radius for selecting vertices
+        self.vertex_radius = 0.5 
         self.viewport_size = 20  # OpenGL viewport dimension (-10 to 10)
 
+     # Sets the graph data to be rendered
     def set_graph(self, graph):
         """Set the graph data to be rendered."""
         self.graph = graph
-        self.vertex_positions = graph.get("positions", {})  # Load positions if available
+        self.vertex_positions = graph.get("positions", {})  # Load positions
         self.initialize_vertex_positions()
-        self.save_initial_state()  # Save the initial state for reset
+        self.save_initial_state()  
         self.update()
 
+    # Saves the current state of the graph
     def save_state(self):
         """Save the current state of the graph for undo/redo."""
         self.history.append(copy.deepcopy((self.graph, self.vertex_positions)))
@@ -53,7 +55,8 @@ class GraphRenderer(QGLWidget):
             self.update()
         else:
             print("No more actions to redo.")            
-        
+    
+     # Assigns random positions to any vertices that don't have them
     def initialize_vertex_positions(self):
         """Randomly initialize vertex positions if not already set."""
         for vertex in self.graph["vertices"]:
@@ -62,6 +65,7 @@ class GraphRenderer(QGLWidget):
                 self.vertex_positions[vertex_id] = np.array([random.uniform(-5, 5), random.uniform(-5, 5)])
         print(f"Initialized vertex positions: {self.vertex_positions}")
 
+    # Saves the current graph state
     def save_initial_state(self):
         """Save the initial state of the graph for resetting."""
         self.initial_graph_state = {
@@ -71,6 +75,7 @@ class GraphRenderer(QGLWidget):
         }
         print("Initial graph state saved.")
 
+    # Resets the graph to the state saved by save_initial_state
     def reset_graph(self):
         """Reset the graph to its initial state."""
         if not self.initial_graph_state:
@@ -108,6 +113,7 @@ class GraphRenderer(QGLWidget):
         self.update()
         
 
+     # Applies a force-directed layout algorithm
     def run_force_directed_algorithm(self):
         """Run a 2D force-directed layout algorithm."""
         if not self.graph["vertices"] or not self.graph["edges"]:
@@ -120,8 +126,8 @@ class GraphRenderer(QGLWidget):
 
         # Constants for forces
         k = np.sqrt(1 / len(vertices)) * 5  # Ideal distance between vertices
-        c_attract = 0.1  # Attraction constant
-        c_repulse = 0.5  # Repulsion constant
+        c_attract = 0.1  
+        c_repulse = 0.5  
 
         for iteration in range(self.force_iterations):
             forces = {v["id"]: np.array([0.0, 0.0]) for v in vertices}
@@ -143,7 +149,7 @@ class GraphRenderer(QGLWidget):
                 pos1 = self.vertex_positions[v1_id]
                 pos2 = self.vertex_positions[v2_id]
                 delta = pos2 - pos1
-                distance = np.linalg.norm(delta) + 0.01  # Avoid division by zero
+                distance = np.linalg.norm(delta) + 0.01  
                 attractive_force = c_attract * (delta * (distance - k))
                 forces[v1_id] += attractive_force
                 forces[v2_id] -= attractive_force
@@ -155,6 +161,7 @@ class GraphRenderer(QGLWidget):
         print(f"Final vertex positions: {self.vertex_positions}")
         self.update()
 
+    # Prepares and returns the current graph data (vertices, edges, positions) for saving to a file
     def save_graph(self):
         """Return the graph data including positions for saving."""
         return {
@@ -163,6 +170,7 @@ class GraphRenderer(QGLWidget):
             "positions": {str(k): v.tolist() for k, v in self.vertex_positions.items()},
         }
 
+     # Loads graph data from a dictionary 
     def load_graph(self, graph_data):
         """Load the graph data, including positions."""
         try:
@@ -189,6 +197,7 @@ class GraphRenderer(QGLWidget):
         except Exception as e:
             print(f"Unexpected error: {e}")
 
+     # Handles the logic for selecting a vertex by its ID for edge creation
     def select_vertex_by_id(self, vertex_id):
         """Select a vertex by its ID."""
         if vertex_id in self.vertex_positions:
@@ -197,20 +206,22 @@ class GraphRenderer(QGLWidget):
             if len(self.selected_vertices) == 2:
                 # If two vertices are selected, create an edge
                 self.add_edge(self.selected_vertices[0], self.selected_vertices[1])
-                self.selected_vertices = []  # Reset selection after creating edge
-            self.update()  # Trigger re-render
+                self.selected_vertices = []  
+            self.update()  
         else:
             print(f"Vertex ID {vertex_id} does not exist.")
 
+     # Processes mouse press events
     def mousePressEvent(self, event):
         """Handle mouse press events to select vertices."""
         if event.button() == Qt.LeftButton:
             # Map mouse click to OpenGL coordinates
             x = (event.x() / self.width()) * self.viewport_size - self.viewport_size / 2
             y = -((event.y() / self.height()) * self.viewport_size - self.viewport_size / 2)
-            print(f"Mouse clicked at OpenGL coordinates: ({x}, {y})")  # Debug statement
+            print(f"Mouse clicked at OpenGL coordinates: ({x}, {y})") 
             self.select_vertex(x, y)
 
+    # Selects the vertex nearest to the given cooridnates if within radius(given)
     def select_vertex(self, x, y):
         """Select a vertex based on a mouse click."""
         nearest_vertex = None
@@ -219,7 +230,7 @@ class GraphRenderer(QGLWidget):
         # Find the nearest vertex to the mouse click
         for vertex_id, position in self.vertex_positions.items():
             distance = np.linalg.norm(position - np.array([x, y]))
-            print(f"Checking vertex {vertex_id}: position={position}, distance={distance}")  # Debug
+            print(f"Checking vertex {vertex_id}: position={position}, distance={distance}")  
             if distance <= self.vertex_radius and distance < min_distance:
                 nearest_vertex = vertex_id
                 min_distance = distance
@@ -231,13 +242,13 @@ class GraphRenderer(QGLWidget):
                 # If two vertices are selected, create an edge
                 self.add_edge(self.selected_vertices[0], self.selected_vertices[1])
                 self.selected_vertices = []  # Reset selection after creating edge
-            self.update()  # Only re-render if a vertex is selected
-
+            self.update() 
     def initializeGL(self):
         """Initialize OpenGL settings."""
-        glEnable(GL_DEPTH_TEST)  # Enable depth testing
-        glClearColor(0.1, 0.1, 0.1, 1.0)  # Set background color to dark gray
+        glEnable(GL_DEPTH_TEST) 
+        glClearColor(0.1, 0.1, 0.1, 1.0)  
 
+     # Called when the widget is resized, sets the OpenGL viewport and projection matrix
     def resizeGL(self, width, height):
         """Handle resizing of the OpenGL widget."""
         glViewport(0, 0, width, height)
@@ -246,6 +257,7 @@ class GraphRenderer(QGLWidget):
         gluOrtho2D(-10, 10, -10, 10)  # Set 2D orthographic projection
         glMatrixMode(GL_MODELVIEW)
 
+    # Contains all OpenGL drawing calls
     def paintGL(self):
         """Render the OpenGL scene."""
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)

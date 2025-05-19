@@ -8,15 +8,14 @@ class GraphUI(QMainWindow):
         super().__init__()
         self.setWindowTitle("2D Graph Drawer")
 
-        # Create the OpenGL widget
+        # Creating the main OpenGL widget
         self.gl_widget = GraphRenderer(self)
 
-        # Set up the layout
         central_widget = QWidget(self)
         layout = QVBoxLayout(central_widget)
         layout.addWidget(self.gl_widget)
 
-        # Add buttons for interactive input
+        # Creating buttons
         add_vertex_button = QPushButton("Add Vertex")
         add_vertex_button.clicked.connect(self.add_vertex)
 
@@ -46,10 +45,10 @@ class GraphUI(QMainWindow):
         layout.addWidget(reset_button)
         layout.addWidget(load_file_button)
         layout.addWidget(save_file_button)
-        layout.addWidget(undo_button)  # Add Undo button to the layout
-        layout.addWidget(redo_button)  # Add Redo button to the layout
+        layout.addWidget(undo_button) 
+        layout.addWidget(redo_button)  
 
-
+        # Set the layout for the central widget
         self.setCentralWidget(central_widget)
 
     def add_vertex(self):
@@ -59,7 +58,7 @@ class GraphUI(QMainWindow):
     def select_vertex(self):
         """Select a vertex interactively for edge creation."""
         vertex_id, ok = QInputDialog.getInt(self, "Select Vertex", "Enter vertex ID:")
-        if ok:  # If the user clicks "OK" and provides a valid input
+        if ok:  
             self.gl_widget.select_vertex_by_id(vertex_id)
 
     def run_layout_algorithm(self):
@@ -73,6 +72,7 @@ class GraphUI(QMainWindow):
     def load_graph_from_file(self):
         """Load a graph from a JSON file."""
         options = QFileDialog.Options()
+         # Open a dialog to get the file path for loading
         file_path, _ = QFileDialog.getOpenFileName(
             self,
             "Open Graph File",
@@ -80,7 +80,7 @@ class GraphUI(QMainWindow):
             "JSON Files (*.json);;All Files (*)",
             options=options
         )
-        if file_path:
+        if file_path:   # Proceed if a file path was selected
             try:
                 with open(file_path, 'r') as file:
                     graph_data = json.load(file)
@@ -110,7 +110,7 @@ class GraphUI(QMainWindow):
             try:
                 graph_data = self.gl_widget.save_graph()
                 with open(file_path, 'w') as file:
-                    json.dump(graph_data, file, indent=4)
+                    json.dump(graph_data, file, indent=4) # Save JSON data to the file with indentation
                 print(f"Graph saved successfully to {file_path}")
             except Exception as e:
                 print(f"Error saving graph: {e}")
@@ -123,6 +123,7 @@ class GraphUI(QMainWindow):
         """Redo the last undone action."""
         self.gl_widget.redo()
 
+# Main execution block
 if __name__ == "__main__":
     import sys
 
