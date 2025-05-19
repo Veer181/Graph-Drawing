@@ -16,6 +16,7 @@ A Python-based graphical application to create, visualize, and edit 2D graphs us
 ### 3. **Run Force-Directed Layout Algorithm**
 - Dynamically reposition vertices based on attractive and repulsive forces.
 - Adjusts positions to create a visually appealing layout.
+- The implemented algorithm is a type of force-directed layout, sharing core principles with algorithms like Fruchterman-Reingold. It uses attractive forces between connected vertices (simulating springs) and repulsive forces between all pairs of vertices. However, the specific mathematical formulas used to calculate the magnitudes of these attractive and repulsive forces differ from those in the classical Fruchterman-Reingold algorithm, making this a custom implementation of the force-directed paradigm.
 
 ### 4. **Reset Graph**
 - Restore the graph to its initial state, including vertices, edges, and positions.
